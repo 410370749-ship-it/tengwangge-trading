@@ -1,0 +1,94 @@
+{
+  "version": "1.0.0",
+  "portfolios": [
+    {
+      "id": "luoxia-1",
+      "name": "金玉满堂",
+      "mode": "paper",
+      "config": {
+        "stop_loss": 0.05,
+        "take_profit": 0.25,
+        "max_hold_days": 3,
+        "position_size": 20000
+      },
+      "initial_capital": 200000,
+      "cash": 22703.85,
+      "positions": [
+        {"stock": "300014", "name": "亿纬锂能", "shares": 333, "avg_cost": 60.03, "buy_date": "2026-03-06"},
+        {"stock": "002151", "name": "北斗星通", "shares": 482, "avg_cost": 41.48, "buy_date": "2026-03-06"},
+        {"stock": "002460", "name": "赣锋锂业", "shares": 299, "avg_cost": 66.68, "buy_date": "2026-03-06"},
+        {"stock": "000938", "name": "紫光股份", "shares": 794, "avg_cost": 25.17, "buy_date": "2026-03-03"},
+        {"stock": "300900", "name": "广联航空", "shares": 530, "avg_cost": 37.71, "buy_date": "2026-03-06"},
+        {"stock": "002527", "name": "新时达", "shares": 1290, "avg_cost": 15.50, "buy_date": "2026-03-03"},
+        {"stock": "002371", "name": "北方华创", "shares": 42, "avg_cost": 465.99, "buy_date": "2026-03-06"},
+        {"stock": "300751", "name": "迈为股份", "shares": 75, "avg_cost": 263.41, "buy_date": "2026-03-06"},
+        {"stock": "688111", "name": "金山办公", "shares": 68, "avg_cost": 293.29, "buy_date": "2026-03-03"}
+      ]
+    },
+    {
+      "id": "luoxia-1-new",
+      "name": "落霞一号",
+      "mode": "paper",
+      "config": {
+        "stop_loss": 0.05,
+        "take_profit": 0.20,
+        "max_hold_days": 20,
+        "position_size": 20000
+      },
+      "initial_capital": 20000,
+      "cash": 20000,
+      "positions": []
+    },
+    {
+      "id": "qiushui-1",
+      "name": "秋水一号",
+      "mode": "paper",
+      "config": {
+        "stop_loss": 0.04,
+        "take_profit": 0.20,
+        "max_hold_days": 2,
+        "position_size": 20000
+      },
+      "initial_capital": 20000,
+      "cash": 20000,
+      "positions": []
+    },
+    {
+      "id": "guwu-1",
+      "name": "孤鹜一号",
+      "mode": "paper",
+      "config": {
+        "stop_loss": 0.08,
+        "take_profit": 0.30,
+        "max_hold_days": 2,
+        "position_size": 20000
+      },
+      "initial_capital": 20000,
+      "cash": 20000,
+      "positions": []
+    },
+    {
+      "id": "changtian-1",
+      "name": "长天一号",
+      "mode": "paper",
+      "config": {
+        "stop_loss": 0.06,
+        "take_profit": 0.15,
+        "max_hold_days": 5,
+        "position_size": 20000
+      },
+      "initial_capital": 20000,
+      "cash": 20000,
+      "positions": []
+    }
+  ],
+  "data_source": {
+    "provider": "mock",
+    "akshare_enabled": true,
+    "tushare_token": ""
+  },
+  "notifications": {
+    "dingtalk_webhook": "https://oapi.dingtalk.com/robot/send?access_token=4f036c9762dc5d553aa9ebe279a7a1eb492fad40e019b841aed9bc3f56828522",
+    "feishu_webhook": "https://open.feishu.cn/open-apis/bot/v2/hook/b6a44880-9119-4845-a9ea-adc840e47dda"
+  }
+}

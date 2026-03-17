@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>滕王阁序交易系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e0e0e0;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        /* 头部 */
+        .header { 
+            text-align: center; 
+            padding: 30px 0; 
+            margin-bottom: 30px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(90deg, #f39c12, #e74c3c, #3498db);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header p { color: #95a5a6; margin-top: 10px; }
+        
+        /* 工具栏 */
+        .toolbar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(52,152,219,0.4); }
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+        .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(231,76,60,0.4); }
+        .btn-success {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+        }
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: #e0e0e0;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        /* 标签页 */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 10px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.3s;
+            color: #95a5a6;
+        }
+        .tab:hover { background: rgba(255,255,255,0.05); }
+        .tab.active {
+            background: rgba(243,156,18,0.2);
+            color: #f39c12;
+        }
+        
+        /* 内容区 */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* 组合卡片 */
+        .portfolio-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .portfolio-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .portfolio-title {
+            font-size: 1.5em;
+            color: #f39c12;
+        }
+        .portfolio-stats {
+            display: flex;
+            gap: 30px;
+        }
+        .stat-item { text-align: center; }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #f39c12;
+        }
+        .stat-value.positive { color: #2ecc71; }
+        .stat-value.negative { color: #e74c3c; }
+        .stat-label { font-size: 12px; color: #95a5a6; margin-top: 5px; }
+        
+        /* 持仓表格 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        th {
+            background: rgba(243,156,18,0.2);
+            color: #f39c12;
+            padding: 12px;
+            text-align: center;
+            font-weight: 600;
+        }
+        td {
+            padding: 14px 12px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        tr:hover { background: rgba(255,255,255,0.03); }
+        
+        /* 信号标记 */
+        .signal-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .signal-stop-loss {
+            background: rgba(231,76,60,0.2);
+            color: #e74c3c;
+        }
+        .signal-take-profit {
+            background: rgba(46,204,113,0.2);
+            color: #2ecc71;
+        }
+        .signal-time-stop {
+            background: rgba(243,156,18,0.2);
+            color: #f39c12;
+        }
+        .signal-hold {
+            background: rgba(149,165,166,0.2);
+            color: #95a5a6;
+        }
+        
+        /* 盈亏颜色 */
+        .positive { color: #2ecc71; }
+        .negative { color: #e74c3c; }
+        
+        /* 复选框 */
+        .checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        /* 交易记录 */
+        .trade-item {
+            background: rgba(255,255,255,0.03);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .trade-info { display: flex; gap: 30px; }
+        .trade-stock { font-weight: bold; color: #f39c12; }
+        
+        /* 统计面板 */
+        .stats-panel {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+        }
+        
+        /* Toast 提示 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+        .toast.success { background: #2ecc71; }
+        .toast.error { background: #e74c3c; }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* 加载动画 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #f39c12;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #7f8c8d;
+        }
+        
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .portfolio-stats { flex-wrap: wrap; gap: 15px; }
+            .toolbar { justify-content: center; }
+            table { font-size: 12px; }
+            th, td { padding: 8px 6px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏮 滕王阁序交易系统</h1>
+            <p>网页版交易界面 | 实时持仓监控 | 一键卖出</p>
+        </div>
+        
+        <div class="toolbar">
+            <button class="btn btn-secondary" onclick="refreshData()">
+                🔄 刷新数据
+            </button>
+            <button class="btn btn-danger" onclick="batchSell()" id="batchSellBtn">
+                🔴 一键卖出选中
+            </button>
+            <button class="btn btn-success" onclick="sellAllAlert()">
+                ⚡ 卖出所有信号股
+            </button>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('holdings')">📊 持仓监控</div>
+            <div class="tab" onclick="switchTab('trades')">📜 交易记录</div>
+        </div>
+        
+        <!-- 持仓页面 -->
+        <div id="holdingsTab" class="tab-content active">
+            <div id="portfoliosContainer">
+                <div class="empty-state">
+                    <div class="loading"></div>
+                    <p>加载中...</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 交易记录页面 -->
+        <div id="tradesTab" class="tab-content">
+            <div class="stats-panel" id="statsPanel">
+                <!-- 统计信息 -->
+            </div>
+            <div id="tradesContainer">
+                <div class="empty-state">加载中...</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let portfoliosData = [];
+        let selectedTrades = new Set();
+        
+        // 页面加载时获取数据
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshData();
+        });
+        
+        // 切换标签页
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            
+            if (tab === 'holdings') {
+                document.querySelector('.tab:nth-child(1)').classList.add('active');
+                document.getElementById('holdingsTab').classList.add('active');
+                refreshData();
+            } else {
+                document.querySelector('.tab:nth-child(2)').classList.add('active');
+                document.getElementById('tradesTab').classList.add('active');
+                loadTrades();
+            }
+        }
+        
+        // 刷新数据
+        async function refreshData() {
+            try {
+                const response = await fetch('/api/portfolios');
+                const data = await response.json();
+                portfoliosData = data.portfolios;
+                renderPortfolios(data.portfolios);
+            } catch (error) {
+                showToast('加载失败: ' + error.message, 'error');
+            }
+        }
+        
+        // 渲染组合列表
+        function renderPortfolios(portfolios) {
+            const container = document.getElementById('portfoliosContainer');
+            
+            if (!portfolios || portfolios.length === 0) {
+                container.innerHTML = '<div class="empty-state">暂无组合数据</div>';
+                return;
+            }
+            
+            let html = '';
+            portfolios.forEach(p => {
+                const pnlClass = p.total_floating_pnl >= 0 ? 'positive' : 'negative';
+                const positions = p.positions || [];
+                const signals = p.signals || [];
+                
+                // 计算各类信号数量
+                const alertCount = signals.filter(s => 
+                    s.signal_type !== 'hold'
+                ).length;
+                
+                html += `
+                    <div class="portfolio-card">
+                        <div class="portfolio-header">
+                            <div>
+                                <div class="portfolio-title">${p.name}</div>
+                                <div style="color: #7f8c8d; font-size: 12px; margin-top: 5px;">
+                                    ${alertCount > 0 ? `⚠️ ${alertCount} 个信号待处理` : '✅ 无异常'}
+                                </div>
+                            </div>
+                            <div class="portfolio-stats">
+                                <div class="stat-item">
+                                    <div class="stat-value">${p.position_count}</div>
+                                    <div class="stat-label">持仓数量</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">${p.position_ratio.toFixed(1)}%</div>
+                                    <div class="stat-label">仓位占比</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">¥${p.total_market_value.toLocaleString()}</div>
+                                    <div class="stat-label">总市值</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value ${pnlClass}">${p.total_floating_pnl >= 0 ? '+' : ''}¥${p.total_floating_pnl.toLocaleString()}</div>
+                                    <div class="stat-label">浮动盈亏</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">¥${p.cash.toLocaleString()}</div>
+                                    <div class="stat-label">现金</div>
+                                </div>
+                            </div>
+                        </div>
+                `;
+                
+                if (positions.length > 0) {
+                    html += `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th width="40"><input type="checkbox" class="checkbox" onchange="toggleSelectAll('${p.id}', this)"></th>
+                                    <th>股票</th>
+                                    <th>买入日期</th>
+                                    <th>持股数</th>
+                                    <th>成本价</th>
+                                    <th>现价</th>
+                                    <th>市值</th>
+                                    <th>盈亏</th>
+                                    <th>持有天数</th>
+                                    <th>信号</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    positions.forEach(pos => {
+                        const signal = signals.find(s => s.stock === pos.stock);
+                        const signalBadge = getSignalBadge(signal);
+                        const pnlClass = pos.floating_pnl >= 0 ? 'positive' : 'negative';
+                        const checkboxId = `${p.id}_${pos.stock}`;
+                        const isSelected = selectedTrades.has(checkboxId);
+                        const shouldAlert = signal && signal.signal_type !== 'hold';
+                        const rowStyle = shouldAlert ? 'background: rgba(231,76,60,0.05);' : '';
+                        
+                        html += `
+                            <tr style="${rowStyle}">
+                                <td>
+                                    <input type="checkbox" class="checkbox" 
+                                           id="${checkboxId}" 
+                                           ${isSelected ? 'checked' : ''}
+                                           onchange="toggleTrade('${p.id}', '${pos.stock}', this)">
+                                </td>
+                                <td><strong>${pos.name}</strong><br><small style="color:#7f8c8d">${pos.stock}</small></td>
+                                <td>${pos.buy_date}</td>
+                                <td>${pos.shares}</td>
+                                <td>¥${pos.avg_cost.toFixed(2)}</td>
+                                <td>¥${pos.current_price.toFixed(2)}</td>
+                                <td>¥${pos.market_value.toLocaleString()}</td>
+                                <td class="${pnlClass}">
+                                    ${pos.floating_pnl >= 0 ? '+' : ''}¥${pos.floating_pnl.toLocaleString()}<br>
+                                    <small>(${pos.floating_pnl_pct >= 0 ? '+' : ''}${(pos.floating_pnl_pct*100).toFixed(2)}%)</small>
+                                </td>
+                                <td>${signal ? signal.hold_days : '-'}天</td>
+                                <td>${signalBadge}</td>
+                                <td>
+                                    ${shouldAlert ? `
+                                        <button class="btn btn-danger" style="padding: 6px 12px; font-size: 12px;"
+                                                onclick="sellStock('${p.id}', '${pos.stock}', '${signal.signal_type}')">
+                                            卖出
+                                        </button>
+                                    ` : '-'}
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += '</tbody></table>';
+                } else {
+                    html += '<div class="empty-state">暂无持仓</div>';
+                }
+                
+                html += '</div>';
+            });
+            
+            container.innerHTML = html;
+            updateBatchButton();
+        }
+        
+        // 获取信号徽章
+        function getSignalBadge(signal) {
+            if (!signal) return '<span class="signal-badge signal-hold">正常</span>';
+            
+            const badges = {
+                'stop_loss': '<span class="signal-badge signal-stop-loss">🔴 止损</span>',
+                'take_profit': '<span class="signal-badge signal-take-profit">🟢 止盈</span>',
+                'time_stop': '<span class="signal-badge signal-time-stop">⏰ 时间止损</span>',
+                'hold': '<span class="signal-badge signal-hold">正常</span>'
+            };
+            return badges[signal.signal_type] || badges['hold'];
+        }
+        
+        // 切换选择
+        function toggleTrade(portfolioId, stockCode, checkbox) {
+            const id = `${portfolioId}_${stockCode}`;
+            if (checkbox.checked) {
+                selectedTrades.add(id);
+            } else {
+                selectedTrades.delete(id);
+            }
+            updateBatchButton();
+        }
+        
+        // 全选/取消全选
+        function toggleSelectAll(portfolioId, checkbox) {
+            const portfolio = portfoliosData.find(p => p.id === portfolioId);
+            if (!portfolio) return;
+            
+            portfolio.positions.forEach(pos => {
+                const id = `${portfolioId}_${pos.stock}`;
+                const posCheckbox = document.getElementById(id);
+                if (posCheckbox) {
+                    posCheckbox.checked = checkbox.checked;
+                    if (checkbox.checked) {
+                        selectedTrades.add(id);
+                    } else {
+                        selectedTrades.delete(id);
+                    }
+                }
+            });
+            updateBatchButton();
+        }
+        
+        // 更新批量按钮状态
+        function updateBatchButton() {
+            const btn = document.getElementById('batchSellBtn');
+            btn.textContent = `🔴 一键卖出选中 (${selectedTrades.size})`;
+            btn.disabled = selectedTrades.size === 0;
+        }
+        
+        // 卖出单只股票
+        async function sellStock(portfolioId, stockCode, reason) {
+            if (!confirm(`确定要卖出 ${stockCode} 吗？`)) return;
+            
+            try {
+                const response = await fetch('/api/sell', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        portfolio_id: portfolioId,
+                        stock_code: stockCode,
+                        reason: reason
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showToast(`✅ 卖出成功! 盈亏: ${result.trade.pnl >= 0 ? '+' : ''}¥${result.trade.pnl.toLocaleString()}`, 'success');
+                    refreshData();
+                } else {
+                    showToast('❌ ' + result.error, 'error');
+                }
+            } catch (error) {
+                showToast('卖出失败: ' + error.message, 'error');
+            }
+        }
+        
+        // 批量卖出
+        async function batchSell() {
+            if (selectedTrades.size === 0) {
+                showToast('请先选择要卖出的股票', 'error');
+                return;
+            }
+            
+            if (!confirm(`确定要卖出选中的 ${selectedTrades.size} 只股票吗？`)) return;
+            
+            const trades = [];
+            selectedTrades.forEach(id => {
+                const [portfolioId, stockCode] = id.split('_');
+                trades.push({ portfolio_id: portfolioId, stock_code: stockCode, reason: 'batch' });
+            });
+            
+            try {
+                const response = await fetch('/api/batch_sell', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ trades })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    const successCount = result.results.filter(r => r.success).length;
+                    showToast(`✅ 成功卖出 ${successCount}/${trades.length} 只`, 'success');
+                    selectedTrades.clear();
+                    refreshData();
+                }
+            } catch (error) {
+                showToast('批量卖出失败: ' + error.message, 'error');
+            }
+        }
+        
+        // 卖出所有信号股
+        async function sellAllAlert() {
+            const alertStocks = [];
+            portfoliosData.forEach(p => {
+                (p.signals || []).forEach(s => {
+                    if (s.signal_type !== 'hold') {
+                        alertStocks.push({
+                            portfolio_id: p.id,
+                            stock_code: s.stock,
+                            reason: s.signal_type
+                        });
+                    }
+                });
+            });
+            
+            if (alertStocks.length === 0) {
+                showToast('没有需要卖出的信号股', 'error');
+                return;
+            }
+            
+            if (!confirm(`确定要卖出所有 ${alertStocks.length} 只信号股吗？\n(止损/止盈/时间止损)`)) return;
+            
+            try {
+                const response = await fetch('/api/batch_sell', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ trades: alertStocks })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    const successCount = result.results.filter(r => r.success).length;
+                    showToast(`✅ 成功卖出 ${successCount}/${alertStocks.length} 只`, 'success');
+                    refreshData();
+                }
+            } catch (error) {
+                showToast('卖出失败: ' + error.message, 'error');
+            }
+        }
+        
+        // 加载交易记录
+        async function loadTrades() {
+            try {
+                const response = await fetch('/api/trades?limit=50');
+                const data = await response.json();
+                renderTrades(data);
+            } catch (error) {
+                showToast('加载交易记录失败', 'error');
+            }
+        }
+        
+        // 渲染交易记录
+        function renderTrades(data) {
+            const stats = data.stats || {};
+            const trades = data.trades || [];
+            
+            // 统计面板
+            const statsPanel = document.getElementById('statsPanel');
+            statsPanel.innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-value">${stats.total_trades || 0}</div>
+                    <div class="stat-label">总交易次数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${(stats.win_rate || 0).toFixed(1)}%</div>
+                    <div class="stat-label">胜率</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value ${stats.total_pnl >= 0 ? 'positive' : 'negative'}">
+                        ${stats.total_pnl >= 0 ? '+' : ''}¥${(stats.total_pnl || 0).toLocaleString()}
+                    </div>
+                    <div class="stat-label">总盈亏</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value positive">¥${(stats.avg_profit || 0).toLocaleString()}</div>
+                    <div class="stat-label">平均盈利</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value negative">¥${(stats.avg_loss || 0).toLocaleString()}</div>
+                    <div class="stat-label">平均亏损</div>
+                </div>
+            `;
+            
+            // 交易列表
+            const container = document.getElementById('tradesContainer');
+            if (trades.length === 0) {
+                container.innerHTML = '<div class="empty-state">暂无交易记录</div>';
+                return;
+            }
+            
+            let html = '';
+            trades.forEach(t => {
+                const pnlClass = t.pnl >= 0 ? 'positive' : 'negative';
+                html += `
+                    <div class="trade-item">
+                        <div class="trade-info">
+                            <div>
+                                <div class="trade-stock">${t.stock_name} (${t.stock})</div>
+                                <div style="color: #7f8c8d; font-size: 12px;">
+                                    ${t.date} ${t.time} · ${t.portfolio_name}
+                                </div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-weight: bold;">${t.shares} 股</div>
+                                <div style="color: #7f8c8d; font-size: 12px;">¥${t.price.toFixed(2)}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-weight: bold; color: #f39c12;">¥${t.amount.toLocaleString()}</div>
+                                <div class="${pnlClass}" style="font-size: 12px;">
+                                    ${t.pnl >= 0 ? '+' : ''}¥${t.pnl.toLocaleString()} 
+                                    (${(t.pnl_pct*100).toFixed(2)}%)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        // 显示提示
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
